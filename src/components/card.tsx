@@ -1,4 +1,4 @@
-import {FC, useState} from 'react'
+import {FC, useEffect, useState} from 'react'
 
 export enum Suit {
 	SPADES = 0,
@@ -29,10 +29,27 @@ interface CardProps {
 }
 
 const Card: FC<CardProps> = (props) => {
+	const [audio] = useState(new Audio('/sounds/deal.ogg'))
+	const [playing, setPlaying] = useState(false)
 	const [flipped, setFlipped] = useState<boolean>(true)
+
+	useEffect(() => {
+			playing ? audio.play() : audio.pause()
+			!playing ? audio.currentTime = 0 : void(0)
+		},
+		[playing]
+	);
+
+	useEffect(() => {
+		audio.addEventListener('ended', () => setPlaying(false));
+		return () => {
+			audio.removeEventListener('ended', () => setPlaying(false));
+		};
+	}, [audio]);
 
 	const onClickHandler = () => {
 		setFlipped(!flipped)
+		setPlaying(true)
 	}
 
 	let rankName = Rank[props.rank].toLowerCase()
@@ -43,11 +60,11 @@ const Card: FC<CardProps> = (props) => {
 	const label = `${rankName} of ${suitName}`
 
 	const getImage = () => {
-		return `/images/cards/front-${(Math.round(props.suit) + Math.round(props.rank))}.png`
+		return `/images/cards/front-${Math.round(props.suit) + Math.round(props.rank)}.png`
 	}
 
 	return (
-		<div className="pl-4" onClick={onClickHandler}>
+		<div onClick={onClickHandler}>
 			<span className="mb-2">{label}</span>
 			<div className="shadow-2xl overflow-hidden rounded">
 				<img className="" src={flipped ? getImage() : '/images/cards/back.png'} alt="Back of card" />
