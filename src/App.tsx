@@ -3,17 +3,27 @@ import Card, {Rank, Suit} from './components/card'
 
 function App() {
   return (
-    <>
-      <header className="flex">
-        <Card suite={Suit.CLUBS} rank={Rank.ACE} />
-        <Card suite={Suit.CLUBS} rank={Rank.ACE} />
-        <Card suite={Suit.CLUBS} rank={Rank.ACE} />
-        <Card suite={Suit.CLUBS} rank={Rank.ACE} />
-        <Card suite={Suit.CLUBS} rank={Rank.ACE} />
-        <Card suite={Suit.CLUBS} rank={Rank.ACE} />
-        <Card suite={Suit.CLUBS} rank={Rank.ACE} />
-      </header>
-    </>
+    <section className="p-4">
+      <div className="flex flex-wrap -ml-4">
+        {Object.keys(Suit).map((suit: any) => {
+            if (isNaN(suit)) {
+                return
+            }
+          return (
+              <div className="flex mb-4" key={suit}>
+                {Object.keys(Rank).map((rank: any) => {
+                    if (isNaN(rank)) {
+                        return
+                    }
+                  return (
+                      <Card key={`${suit}-${rank}`} suit={suit} rank={rank} />
+                  )
+                })}
+              </div>
+          )
+        })}
+      </div>
+    </section>
   );
 }
 
