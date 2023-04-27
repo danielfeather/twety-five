@@ -1,4 +1,4 @@
-import {FC, useEffect, useState} from 'react'
+import {FC, HTMLProps, useEffect, useState} from 'react'
 
 export enum Suit {
 	SPADES = 0,
@@ -24,20 +24,21 @@ export enum Rank {
 }
 
 interface CardProps {
-	suit: Suit
-	rank: Rank
+	suit?: Suit
+	rank?: Rank
+	flipped?: boolean
 }
 
-const Card: FC<CardProps> = (props) => {
+const Card: FC<CardProps & HTMLProps<HTMLDivElement>> = (props) => {
 	const [audio] = useState(new Audio('/sounds/deal.ogg'))
 	const [playing, setPlaying] = useState(false)
-	const [flipped, setFlipped] = useState<boolean>(true)
+	const [flipped, setFlipped] = useState<boolean>(!!props.flipped)
 
 	useEffect(() => {
 			playing ? audio.play() : audio.pause()
 			!playing ? audio.currentTime = 0 : void(0)
 		},
-		[playing]
+		[playing, audio]
 	);
 
 	useEffect(() => {
@@ -48,27 +49,25 @@ const Card: FC<CardProps> = (props) => {
 	}, [audio]);
 
 	const onClickHandler = () => {
+		if (props.suit === undefined || !props.rank === undefined) {
+			console.log(props)
+			return
+		}
 		setFlipped(!flipped)
 		setPlaying(true)
 	}
 
-	let rankName = Rank[props.rank].toLowerCase()
-	rankName = rankName.charAt(0).toUpperCase() + rankName.slice(1)
-	let suitName = Suit[props.suit].toLowerCase()
-	suitName = suitName.charAt(0).toUpperCase() + suitName.slice(1)
-
-	const label = `${rankName} of ${suitName}`
-
 	const getImage = () => {
+		if (props.suit === undefined || props.rank === undefined) {
+			return ''
+		}
+
 		return `/images/cards/front-${Math.round(props.suit) + Math.round(props.rank)}.png`
 	}
 
 	return (
-		<div onClick={onClickHandler}>
-			<span className="mb-2">{label}</span>
-			<div className="shadow-2xl overflow-hidden rounded">
-				<img className="" src={flipped ? getImage() : '/images/cards/back.png'} alt="Back of card" />
-			</div>
+		<div {...props} onClick={onClickHandler} className={"shadow-2xl overflow-hidden rounded relative " + props.className}>
+			<img src={flipped ? getImage() : '/images/cards/back.png'} alt="Back of card" />
 		</div>
 	)
 }
