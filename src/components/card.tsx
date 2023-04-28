@@ -1,4 +1,4 @@
-import {FC, HTMLProps, useEffect, useState} from 'react'
+import {FC, HTMLProps, MouseEvent, useState} from 'react'
 
 export enum Suit {
 	SPADES = 0,
@@ -29,33 +29,14 @@ interface CardProps {
 	flipped?: boolean
 }
 
+interface OnClickHandler {
+	(suit: Suit, rank: Rank, card: number, event: MouseEvent<HTMLDivElement>): void
+}
+
 const Card: FC<CardProps & HTMLProps<HTMLDivElement>> = (props) => {
+
 	const [audio] = useState(new Audio('/sounds/deal.ogg'))
 	const [playing, setPlaying] = useState(false)
-	const [flipped, setFlipped] = useState<boolean>(!!props.flipped)
-
-	useEffect(() => {
-			playing ? audio.play() : audio.pause()
-			!playing ? audio.currentTime = 0 : void(0)
-		},
-		[playing, audio]
-	);
-
-	useEffect(() => {
-		audio.addEventListener('ended', () => setPlaying(false));
-		return () => {
-			audio.removeEventListener('ended', () => setPlaying(false));
-		};
-	}, [audio]);
-
-	const onClickHandler = () => {
-		if (props.suit === undefined || !props.rank === undefined) {
-			console.log(props)
-			return
-		}
-		setFlipped(!flipped)
-		setPlaying(true)
-	}
 
 	const getImage = () => {
 		if (props.suit === undefined || props.rank === undefined) {
@@ -66,8 +47,8 @@ const Card: FC<CardProps & HTMLProps<HTMLDivElement>> = (props) => {
 	}
 
 	return (
-		<div {...props} onClick={onClickHandler} className={"shadow-2xl overflow-hidden rounded relative " + props.className}>
-			<img src={flipped ? getImage() : '/images/cards/back.png'} alt="Back of card" />
+		<div onClick={props.onClick} className={"shadow-2xl overflow-hidden rounded relative " + props.className}>
+			<img src={props.flipped ? getImage() : '/images/cards/back.png'} alt="Back of card" />
 		</div>
 	)
 }

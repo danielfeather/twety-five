@@ -15,6 +15,10 @@ function App() {
 	const [cards, setCards] = useState<number[]>([])
 	const [trump, setTrump] = useState<Trump>()
 	const players = [...Array(5).keys()]
+	const [currentPlayer, setCurrentPlayer] = useState<number>(0)
+	const [releasedCard, setReleasedCard] = useState<number>()
+
+	const [table, setTable] = useState<number[]>([])
 
 	const [hands, setHands] = useState<Hands>({
 		0: [],
@@ -42,15 +46,32 @@ function App() {
 		return card - suit
 	}
 
-	function getCard(card: number, index: number) {
+	function getCard(card: number, index: number, player: number) {
 
 		const suit = getSuit(card)
 		const rank = getRank(suit, card)
 
-		return <Card suit={suit} rank={rank} key={index} />
+		function onCardClick() {
+			if (currentPlayer === player) {
+				setTable([
+					...table,
+					card
+				])
+				setHands((prevState) => ({
+					...prevState,
+					[player]: prevState[player].filter(playerCard => playerCard !== card)
+				}))
+				setCurrentPlayer((previousPlayer) => ++previousPlayer)
+			}
+		}
+
+		return <Card suit={suit} rank={rank} key={index} flipped={currentPlayer === player} onClick={onCardClick} />
 	}
 
 	function deal() {
+		setTable([])
+		setCurrentPlayer(0)
+
 		let availableCards = [...Array(52).keys()].sort(() => Math.random() - .5)
 		for (const i in players) {
 			if (hands[i].length > 5) {
@@ -79,21 +100,21 @@ function App() {
 		<section className="p-4 h-full flex flex-wrap" style={{backgroundImage: "url('/images/wallpapers/vintage-wallpaper.webp')"}}>
 			<button className="bg-neutral-200 px-4 py-2 mb-4 absolute" onClick={deal}>Start game</button>
 			<div className="w-1/5 mx-auto grid grid-cols-3 grid-flow-row gap-4">
-				<div className="flex col-span-2">
-					{
-						cards.map((card, index) => {
-							const suit = getSuit(card)
-							const rank = getRank(suit, card)
-
-							return (
-								<Card suit={suit} rank={rank} flipped={false} className="-ml-6" />
-							)
-						})
-					}
+				<div>
+					<Card flipped={false} />
 				</div>
 				<div>
 					{ trump ? <Card suit={trump.suit} rank={trump.rank} flipped={true} /> : ''}
 				</div>
+			</div>
+			<div className="grid grid-flow-row gap-4 grid-cols-5">
+				{
+					table.map(card => {
+						const suit = getSuit(card)
+						const rank = getRank(suit, card)
+						return ( <Card key={card} suit={suit} rank={rank} flipped={true} /> )
+					})
+				}
 			</div>
 			<div className="mt-auto grid grid-cols-5 grid-flow-row w-full">
 				{
@@ -104,7 +125,7 @@ function App() {
 									<h2 className="text-2xl font-bold text-center text-white mb-4">Player {player + 1}</h2>
 									<div className="grid grid-cols-3 grid-flow-row gap-4">
 										{
-											hands[player].map((card, index) => getCard(card, index))
+											hands[player].map((card, index) => getCard(card, index, player))
 										}
 									</div>
 								</div>
