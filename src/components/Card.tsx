@@ -1,4 +1,4 @@
-import {FC, HTMLProps, MouseEvent, useState} from 'react'
+import { FC, HTMLProps } from 'react'
 
 export enum Suit {
 	SPADES = 0,
@@ -29,14 +29,7 @@ interface CardProps {
 	flipped?: boolean
 }
 
-interface OnClickHandler {
-	(suit: Suit, rank: Rank, card: number, event: MouseEvent<HTMLDivElement>): void
-}
-
 const Card: FC<CardProps & HTMLProps<HTMLDivElement>> = (props) => {
-
-	const [audio] = useState(new Audio('/sounds/deal.ogg'))
-	const [playing, setPlaying] = useState(false)
 
 	const getImage = () => {
 		if (props.suit === undefined || props.rank === undefined) {
