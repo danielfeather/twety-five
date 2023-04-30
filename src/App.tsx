@@ -1,15 +1,40 @@
 import React, {useEffect, useState} from 'react'
 import Card, {Rank, Suit} from './components/Card'
-import Button, {Style} from "./components/Button";
+import Button, {Style} from './components/Button'
+import {createPortal} from 'react-dom'
+import Alert, {Severity} from "./components/Alert";
 
 interface Hands {
 	[player: number]: number[]
 }
 
 interface Trump {
+	robbed: boolean
 	card: number
 	suit: Suit
 	rank: Rank
+}
+
+function getSuit(card: number) {
+	if (card >= Suit.DIAMONDS) {
+		return Suit.DIAMONDS
+	}
+	if (card >= Suit.CLUBS) {
+		return Suit.CLUBS
+	}
+	if (card >= Suit.HEARTS) {
+		return Suit.HEARTS
+	}
+
+	return Suit.SPADES
+}
+
+function getRank(suit: number, card: number): Rank {
+	return card - suit
+}
+
+function isAceOfTrumps(card: number, suit: Suit) {
+	return getRank(suit, card) === Rank.ACE;
 }
 
 function App() {
@@ -17,10 +42,8 @@ function App() {
 	const [trump, setTrump] = useState<Trump>()
 	const players = [...Array(5).keys()]
 	const [currentPlayer, setCurrentPlayer] = useState<number>(0)
-	const [releasedCard, setReleasedCard] = useState<number>()
+	const [releasedCard, setReleasedCard] = useState<boolean>()
 	const [robbing, setRobbing] = useState<boolean>(false)
-	const modals = useState()
-
 	const [table, setTable] = useState<number[]>([])
 
 	const [hands, setHands] = useState<Hands>({
@@ -31,30 +54,17 @@ function App() {
 		4: [],
 	})
 
-	function getSuit(card: number) {
-		if (card >= Suit.DIAMONDS) {
-			return Suit.DIAMONDS
-		}
-		if (card >= Suit.CLUBS) {
-			return Suit.CLUBS
-		}
-		if (card >= Suit.HEARTS) {
-			return Suit.HEARTS
-		}
-
-		return Suit.SPADES
-	}
-
-	function getRank(suit: number, card: number): Rank {
-		return card - suit
-	}
-
 	function getCard(card: number, index: number, player: number) {
 
 		const suit = getSuit(card)
 		const rank = getRank(suit, card)
 
 		function onCardClick() {
+			console.log(robbing)
+			if (robbing) {
+				robTrump(card, player)
+				return
+			}
 			playCard(card, player)
 		}
 
@@ -64,6 +74,7 @@ function App() {
 	function deal() {
 		setTable([])
 		setCurrentPlayer(0)
+		setReleasedCard(false)
 
 		let availableCards = [...Array(52).keys()].sort(() => Math.random() - .5)
 		for (const i in players) {
@@ -82,6 +93,7 @@ function App() {
 		const trumpSuit = getSuit(trumpCard)
 
 		setTrump({
+			robbed: false,
 			card: trumpCard,
 			suit: trumpSuit,
 			rank: getRank(trumpSuit, trumpCard)
@@ -102,12 +114,29 @@ function App() {
 		}
 	}
 
-	function releaseCard(card: number, player: number) {
+	function robTrump(card: number, player: number) {
+		if (!trump) {
+			return
+		}
+		setReleasedCard(true)
+		setTrump({
+			...trump,
+			robbed: true,
+		})
+		setHands(prevState => {
 
-	}
+			const hand = prevState[player]
+				.filter(playerCard => playerCard !== card)
 
-	function isAceOfTrumps(card: number, suit: Suit) {
-		return getRank(suit, card) === Rank.ACE;
+			hand.push(trump.card)
+
+			return {
+				...prevState,
+				[player]: hand
+			}
+
+		})
+		setRobbing(false)
 	}
 
 	useEffect(() => {
@@ -123,9 +152,28 @@ function App() {
 			return;
 		}
 
+		if (trump.robbed) {
+			return;
+		}
+
 		setRobbing(true)
 		// If the A of trumps is turned up then the player may rob immediately and discard one of their cards
 	}, [currentPlayer, trump])
+
+	function getTrumpCard(suit: Suit, rank: Rank, robbed: boolean) {
+		if (!robbed) {
+			return <Card suit={suit} rank={rank} flipped={true} />
+		}
+
+		return (
+			<div className="relative">
+				<Card suit={suit} rank={rank} flipped={true} />
+				<div className="absolute inset-0 bg-black bg-opacity-25">
+					!
+				</div>
+			</div>
+		)
+	}
 
 	return (
 		<section className="p-4 h-full flex flex-wrap" style={{backgroundImage: "url('/images/wallpapers/vintage-wallpaper.webp')"}}>
@@ -138,7 +186,12 @@ function App() {
 						<Card flipped={false} />
 					</div>
 					<div>
-						{ trump ? <Card suit={trump.suit} rank={trump.rank} flipped={true} /> : ''}
+						{
+							trump ? getTrumpCard(trump.suit, trump.rank, trump.robbed) : ''
+						}
+					</div>
+					<div>
+						{ releasedCard ? <Card flipped={false} /> : '' }
 					</div>
 				</div>
 				<div className="col-span-3 col-start-2 row-start-2 grid grid-flow-row gap-4 grid-cols-9">
@@ -153,6 +206,13 @@ function App() {
 					</div>
 				</div>
 				<div className="col-span-5 grid grid-flow-row grid-cols-5">
+					{
+						robbing ? createPortal(
+							<Alert severity={Severity.CRITICAL} onConfirm={() => setRobbing(true)} onDeny={() => setRobbing(false)}>
+								Since you dealt and the Ace of Trumps is turned up, you may rob it and
+								discard one of your current cards. You can also choose not to do this.
+							</Alert>, document.body) : false
+					}
 					{
 						players.map(
 							(player) => {
