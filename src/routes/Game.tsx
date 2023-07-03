@@ -2,6 +2,8 @@ import React, {FC, useEffect, useState} from 'react'
 import Card, {Rank, Suit} from '../components/Card'
 import Button, {Style} from '../components/Button'
 import Player from '../components/Player'
+import Table from "../components/Table";
+import Deck from "../components/Deck";
 
 interface Hands {
     [player: number]: number[]
@@ -10,8 +12,6 @@ interface Hands {
 interface Trump {
     robbed: boolean
     card: number
-    suit: Suit
-    rank: Rank
 }
 
 function getSuit(card: number) {
@@ -40,7 +40,7 @@ const Game: FC = () => {
     const [trump, setTrump] = useState<Trump>()
     const players = [...Array(5).keys()]
     const [currentPlayer, setCurrentPlayer] = useState<number>(0)
-    const [releasedCard, setReleasedCard] = useState<boolean>()
+    const [releasedCard, setReleasedCard] = useState<boolean>(false)
     const [robbing, setRobbing] = useState<boolean>(false)
     const [table, setTable] = useState<number[]>([])
 
@@ -58,7 +58,6 @@ const Game: FC = () => {
         const rank = getRank(suit, card)
 
         function onCardClick() {
-            console.log(robbing)
             if (robbing) {
                 robTrump(card, player)
                 return
@@ -88,13 +87,10 @@ const Game: FC = () => {
         }
 
         const trumpCard = availableCards.shift() as number
-        const trumpSuit = getSuit(trumpCard)
 
         setTrump({
             robbed: false,
             card: trumpCard,
-            suit: trumpSuit,
-            rank: getRank(trumpSuit, trumpCard)
         })
     }
 
@@ -146,7 +142,7 @@ const Game: FC = () => {
             return;
         }
 
-        if (!isAceOfTrumps(trump.card, trump.suit)) {
+        if (!isAceOfTrumps(trump.card, getSuit(trump.card))) {
             return;
         }
 
@@ -158,50 +154,15 @@ const Game: FC = () => {
         // If the A of trumps is turned up then the player may rob immediately and discard one of their cards
     }, [currentPlayer, trump])
 
-    function getTrumpCard(suit: Suit, rank: Rank, robbed: boolean) {
-        if (!robbed) {
-            return <Card suit={suit} rank={rank} flipped={true} />
-        }
-
-        return (
-            <div className="relative">
-                <Card suit={suit} rank={rank} flipped={true} />
-                <div className="absolute inset-0 bg-black bg-opacity-25 flex items-center justify-center">
-                    <span className="absolute bg-red-500 w-6 h-6 text-center text-white rounded-full -top-3">!</span>
-                </div>
-            </div>
-        )
-    }
-
     return (
         <section className="p-4 h-full flex flex-wrap" style={{backgroundImage: "url('/images/wallpapers/vintage-wallpaper.webp')"}}>
             <Button variant={trump ? Style.DANGER : Style.DEFAULT} className="absolute" onClick={deal}>
                 {trump ? 'Restart game' : 'Start game'}
             </Button>
             <div className="mt-auto grid grid-cols-5 grid-flow-row w-full gap-y-4">
-                <div className="grid grid-flow-row row-start-1 grid-cols-3 gap-4 col-start-3">
-                    <div>
-                        <Card flipped={false} />
-                    </div>
-                    <div>
-                        {
-                            trump ? getTrumpCard(trump.suit, trump.rank, trump.robbed) : ''
-                        }
-                    </div>
-                    <div>
-                        { releasedCard ? <Card flipped={false} /> : '' }
-                    </div>
-                </div>
+                <Deck trump={trump} card={releasedCard} />
                 <div className="col-span-3 col-start-2 row-start-2 grid grid-flow-row gap-4 grid-cols-9">
-                    <div className="grid grid-flow-row grid-cols-5 col-start-3 col-end-8 gap-4">
-                        {
-                            table.map(card => {
-                                const suit = getSuit(card)
-                                const rank = getRank(suit, card)
-                                return ( <Card key={card} suit={suit} rank={rank} flipped={true} /> )
-                            })
-                        }
-                    </div>
+                    <Table cards={table} className="col-start-3 col-end-8" players={players} />
                 </div>
                 <div className="col-span-5 grid grid-flow-row grid-cols-5">
                     {

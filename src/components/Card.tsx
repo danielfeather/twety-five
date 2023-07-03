@@ -24,6 +24,7 @@ export enum Rank {
 }
 
 interface CardProps {
+	card?: number
 	suit?: Suit
 	rank?: Rank
 	flipped?: boolean
@@ -32,16 +33,20 @@ interface CardProps {
 const Card: FC<CardProps & HTMLProps<HTMLDivElement>> = (props) => {
 
 	const getImage = () => {
-		if (props.suit === undefined || props.rank === undefined) {
-			return ''
+		if (props.suit !== undefined && props.rank !== undefined) {
+			return `/images/cards/front-${props.suit + props.rank}.png`
 		}
 
-		return `/images/cards/front-${Math.round(props.suit) + Math.round(props.rank)}.png`
+		if (props.card !== undefined) {
+			return `/images/cards/front-${props.card}.png`
+		}
+
+		return ''
 	}
 
 	return (
 		<div onClick={props.onClick} className={"shadow-2xl overflow-hidden rounded relative " + props.className}>
-			<img src={props.flipped ? getImage() : '/images/cards/back.png'} alt="Back of card" />
+			<img src={props.flipped ? getImage() : '/images/cards/back.png'} alt="Card" />
 		</div>
 	)
 }
