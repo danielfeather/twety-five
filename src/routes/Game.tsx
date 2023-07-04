@@ -38,11 +38,12 @@ function isAceOfTrumps(card: number, suit: Suit) {
 
 const Game: FC = () => {
     const [trump, setTrump] = useState<Trump>()
-    const players = [...Array(5).keys()]
+    const [players, setPlayers] = useState<number[]>([...Array(5).keys()])
     const [currentPlayer, setCurrentPlayer] = useState<number>(0)
     const [releasedCard, setReleasedCard] = useState<boolean>(false)
     const [robbing, setRobbing] = useState<boolean>(false)
     const [table, setTable] = useState<number[]>([])
+    const [suit, setSuit] = useState<Suit>()
 
     const [hands, setHands] = useState<Hands>({
         0: [],
@@ -96,6 +97,9 @@ const Game: FC = () => {
 
     function playCard(card: number, player: number) {
         if (currentPlayer === player) {
+            if (currentPlayer === 0) {
+                setSuit(getSuit(card))
+            }
             setTable([
                 ...table,
                 card
@@ -153,6 +157,36 @@ const Game: FC = () => {
         setRobbing(true)
         // If the A of trumps is turned up then the player may rob immediately and discard one of their cards
     }, [currentPlayer, trump])
+
+    useEffect(() => {
+        if (table.length === players.length && trump?.card) {
+            
+            // const sorted = [...table].sort((a, b) => {
+                
+            //     const trumpSuit = getSuit(trump.card)
+
+            //     const aSuit = getSuit(a)
+            //     const aRank = getRank(aSuit, a)
+            //     const bSuit = getSuit(b)
+            //     const bRank = getRank(bSuit, b)
+
+            //     if (aSuit !== trumpSuit && bSuit !== trumpSuit) {
+
+            //     }
+
+            // })
+
+            // Trumps
+            // 1. 5 of Trumps
+            // 2. Jack of Trumps
+            // 3. Ace of Hearts40608143
+            // 4. King and Queen
+            // 5. Highest in Red / Lowest in Black
+
+            // Non-Trumps
+            // 1.
+        }
+    },[table, players, trump])
 
     return (
         <section className="p-4 h-full flex flex-wrap" style={{backgroundImage: "url('/images/wallpapers/vintage-wallpaper.webp')"}}>

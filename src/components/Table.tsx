@@ -13,7 +13,7 @@ const Table: FC<PropsWithChildren<TableProps & HTMLProps<HTMLDivElement>>> = ({ 
             {
                 players.map((player) => {
                     return (
-                        <div className="border border-dashed" style={{height: 144, width: 103}}>
+                        <div className="border border-dashed aspect-[5/7] rounded">
                             { cards[player] ? <Card card={cards[player]} flipped={true} /> : '' }
                         </div>
                     )
