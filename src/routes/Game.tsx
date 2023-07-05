@@ -1,4 +1,4 @@
-import React, {FC, useEffect, useState} from 'react'
+import React, {FC, useEffect, useMemo, useState} from 'react'
 import Card, {Rank, Suit} from '../components/Card'
 import Button, {Style} from '../components/Button'
 import Player from '../components/Player'
@@ -36,6 +36,50 @@ function isAceOfTrumps(card: number, suit: Suit) {
     return getRank(suit, card) === Rank.ACE;
 }
 
+function getRankings(suit: Suit, trump = false) {
+
+    if (suit === Suit.CLUBS || suit === Suit.SPADES) {
+        return (!trump ? [
+            Rank.KING, Rank.QUEEN, Rank.JACK, Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN
+        ] : [
+            Rank.FIVE, Rank.JACK, [Suit.HEARTS, Rank.ACE], Rank.ACE, Rank.KING, Rank.QUEEN, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN
+        ]).map(rankOrArray => {
+            if (Array.isArray(rankOrArray)) {
+                return rankOrArray.reduce((prev, current) => prev + current)
+            }
+
+            return rankOrArray + suit
+        })
+    }
+
+    if (suit === Suit.HEARTS) {
+        return (!trump ? [
+            Rank.KING, Rank.QUEEN, Rank.JACK, Rank.TEN, Rank.NINE, Rank.EIGHT, Rank.SEVEN, Rank.SIX, Rank.FIVE, Rank.FOUR, Rank.THREE, Rank.TWO
+        ] : [
+            Rank.FIVE, Rank.JACK, Rank.ACE, Rank.KING, Rank.QUEEN, Rank.TEN, Rank.NINE, Rank.EIGHT, Rank.SEVEN, Rank.SIX, Rank.FOUR, Rank.THREE, Rank.TWO
+        ]).map(rankOrArray => {
+            if (Array.isArray(rankOrArray)) {
+                return rankOrArray.reduce((prev, current) => prev + current)
+            }
+
+            return rankOrArray + suit
+        })
+    }
+
+    return (!trump ? [
+        Rank.KING, Rank.QUEEN, Rank.JACK, Rank.TEN, Rank.NINE, Rank.EIGHT, Rank.SEVEN, Rank.SIX, Rank.FIVE, Rank.FOUR, Rank.THREE, Rank.TWO, Rank.ACE
+    ] : [
+        Rank.FIVE, Rank.JACK, [Suit.HEARTS, Rank.ACE], Rank.ACE, Rank.KING, Rank.QUEEN, Rank.TEN, Rank.NINE, Rank.EIGHT, Rank.SEVEN, Rank.SIX, Rank.FOUR, Rank.THREE, Rank.TWO
+    ]).map(rankOrArray => {
+        if (Array.isArray(rankOrArray)) {
+            return rankOrArray.reduce((prev, current) => prev + current)
+        }
+
+        return rankOrArray + suit
+    })
+
+}
+
 const Game: FC = () => {
     const [trump, setTrump] = useState<Trump>()
     const [players, setPlayers] = useState<number[]>([...Array(5).keys()])
@@ -44,6 +88,60 @@ const Game: FC = () => {
     const [robbing, setRobbing] = useState<boolean>(false)
     const [table, setTable] = useState<number[]>([])
     const [suit, setSuit] = useState<Suit>()
+
+    const winner = useMemo(() => {
+
+        if (!trump?.card) {
+            return []
+        }
+
+        return [...table].sort((a, b) => {
+                
+            const trumpSuit = getSuit(trump.card)
+
+            const aSuit = getSuit(a)
+            const aRank = getRank(aSuit, a)
+            const bSuit = getSuit(b)
+            const bRank = getRank(bSuit, b)
+            
+            console.log(`Comparing [${Rank[aRank]} of ${Suit[aSuit]}] to [${Rank[bRank]} of ${Suit[bSuit]}]`)
+
+            if (aSuit === trumpSuit || a === 13) {
+                if (bSuit === trumpSuit || b === 13) {
+                    
+                    const rankings = getRankings(trumpSuit, true)
+
+                    const aRanking = rankings.indexOf(a)
+                    const bRanking = rankings.indexOf(b)
+                    
+                    console.log(`[${Rank[bRank]} of ${Suit[bSuit]}] is ${bRanking < aRanking ? 'better than' : 'not better than'} [${Rank[aRank]} of ${Suit[aSuit]}]`)
+                    return bRanking < aRanking ? 1 : -1
+
+                }
+
+                return -1
+            }
+
+            if (bSuit === suit) {
+                
+                if (aSuit !== suit) {
+                    return 1
+                }
+                
+                const rankings = getRankings(suit)
+
+                const aRanking = rankings.indexOf(a)
+                const bRanking = rankings.indexOf(b)
+                
+                console.log(`[${Rank[bRank]} of ${Suit[bSuit]}] is ${bRanking < aRanking ? 'better than' : 'not better than'} [${Rank[aRank]} of ${Suit[aSuit]}]`)
+                return bRanking < aRanking ? 1 : -1
+
+            }
+
+            return 0
+
+        })
+    }, [table, trump, suit])
 
     const [hands, setHands] = useState<Hands>({
         0: [],
@@ -159,34 +257,10 @@ const Game: FC = () => {
     }, [currentPlayer, trump])
 
     useEffect(() => {
-        if (table.length === players.length && trump?.card) {
-            
-            // const sorted = [...table].sort((a, b) => {
-                
-            //     const trumpSuit = getSuit(trump.card)
-
-            //     const aSuit = getSuit(a)
-            //     const aRank = getRank(aSuit, a)
-            //     const bSuit = getSuit(b)
-            //     const bRank = getRank(bSuit, b)
-
-            //     if (aSuit !== trumpSuit && bSuit !== trumpSuit) {
-
-            //     }
-
-            // })
-
-            // Trumps
-            // 1. 5 of Trumps
-            // 2. Jack of Trumps
-            // 3. Ace of Hearts40608143
-            // 4. King and Queen
-            // 5. Highest in Red / Lowest in Black
-
-            // Non-Trumps
-            // 1.
+        if (winner.length === players.length) {
+            setTimeout(() => alert(`Player ${(table.indexOf([...winner].shift() as number)) + 1} wins!`))
         }
-    },[table, players, trump])
+    },[players, winner, table])
 
     return (
         <section className="p-4 h-full flex flex-wrap" style={{backgroundImage: "url('/images/wallpapers/vintage-wallpaper.webp')"}}>
