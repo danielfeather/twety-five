@@ -1,4 +1,4 @@
-import React, {FC, HTMLProps} from 'react'
+import React, {FC, HTMLProps, Ref} from 'react'
 import Card from './Card'
 
 interface DeckProps {
@@ -6,6 +6,7 @@ interface DeckProps {
         card: number
         robbed: boolean
     }
+    deckRef?: Ref<HTMLDivElement>
     card: boolean
 }
 
@@ -24,10 +25,10 @@ function getTrumpCard(card: number, robbed: boolean) {
     )
 }
 
-const Deck: FC<DeckProps & HTMLProps<HTMLDivElement>> = ({ trump, card, ...props }) => {
+const Deck: FC<DeckProps & HTMLProps<HTMLDivElement>> = ({ trump, card, deckRef, ...props }) => {
     return (
         <div className={`grid grid-flow-row row-start-1 grid-cols-3 gap-4 col-start-3 ${props.className}`} {...props}>
-            <div>
+            <div ref={deckRef}>
                 <Card flipped={false} />
             </div>
             <div>
