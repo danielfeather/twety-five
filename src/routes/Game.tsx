@@ -91,12 +91,15 @@ const Game: FC = () => {
     const [table, setTable] = useState<number[]>([])
     const [suit, setSuit] = useState<Suit>()
 
-    const deckRef = useRef<HTMLDivElement>(null)
+    
+
+    // Dealing
 
     const [state, setState] = useState<string>()
-
+    const [dealer, setDealer] = useState<number>()
     const [currentlyReceivingCards, setCurrentlyReceivingCards] = useState<number>()
 
+    const deckRef = useRef<HTMLDivElement>(null)
     const cardRef = useRef<Array<HTMLDivElement|null>>([])
 
     const winner = useMemo(() => {
@@ -174,26 +177,14 @@ const Game: FC = () => {
             playCard(card, player)
         }
 
-        return <Card suit={suit} rank={rank} key={index} flipped={currentPlayer === player} onClick={onCardClick} />
+        return <Card suit={suit} rank={rank} key={index} flipped={currentPlayer === player} onClick={onCardClick} ref={el => cardRef.current[index] = el} />
     }
 
     function deal() {
         setTable([])
         setCurrentPlayer(0)
         setReleasedCard(false)
-
-        // let availableCards = [...Array(52).keys()].sort(() => Math.random() - .5)
-        // for (const i in players) {
-        //     if (hands[i].length > 5) {
-        //         continue;
-        //     }
-        //     const playersCards = availableCards.slice(0, 5)
-        //     availableCards = availableCards.filter(availableCard => !playersCards.includes(availableCard))
-        //     setHands(prevState => ({
-        //         ...prevState,
-        //         [i]: playersCards,
-        //     }))
-        // }
+        setDealer(1)
 
         const availableCards = deck
 
@@ -211,33 +202,46 @@ const Game: FC = () => {
 
     useEffect(() => {
         
-        if (state === 'dealing') {
-            
-            const receiver = currentlyReceivingCards === undefined ? 1 : currentlyReceivingCards
+        if (state === 'dealing' && dealer !== undefined) {
 
-            setTimeout(() => {
-                
-                if(currentlyReceivingCards === 0) {
-                    setCurrentlyReceivingCards(undefined)
-                    setState('playing')
-                    return
-                }
+            // Previous cards transition
+            if (currentlyReceivingCards !== undefined) {
+                cardRef.current.forEach(card => {
+                    if (!card || !deckRef.current) {
+                        return
+                    }
+    
+                    const width = card.offsetWidth
+                    const originalLeft = card.offsetLeft
+                    const originalTop = card.offsetTop
+                    
+                    card.style.visibility = 'hidden'
+                    card.style.position = 'absolute'
+                    card.style.width = `${width}px`
+                    card.style.left = `${deckRef.current.offsetLeft}px`
+                    card.style.top = `${deckRef.current.offsetTop}px`
+                    card.style.transitionDuration = '.7s'
+                    card.style.visibility = 'visible'
+                    card.style.transform = `translate(
+                        ${originalLeft - deckRef.current.offsetLeft}px,
+                        ${originalTop - deckRef.current.offsetTop}px
+                    )`
+                })    
+            }
 
+            if (currentlyReceivingCards === undefined) {
                 const playersCards = deck.slice(0, 5)
                 setDeck(deck.filter(availableCard => !playersCards.includes(availableCard)))
                 setHands(prevState => ({
                     ...prevState,
-                    [receiver]: playersCards,
+                    [dealer + 1]: playersCards,
                 }))
-                if(currentlyReceivingCards === 4) {
-                    setCurrentlyReceivingCards(0)
-                    return
-                }
-                setCurrentlyReceivingCards(receiver + 1)
-            }, 1000)
+                setCurrentlyReceivingCards(dealer + 1)
+                return
+            }
         }
 
-    }, [state, hands, currentlyReceivingCards, deck])
+    }, [state, hands, currentlyReceivingCards, deck, dealer])
 
     function playCard(card: number, player: number) {
         if (currentPlayer === player) {
@@ -326,7 +330,7 @@ const Game: FC = () => {
                                     <Player name={`Player ${player + 1}`}>
                                         { 
                                             hands[player].map((card, index) => (
-                                                <div className='border border-dashed aspect-[5/7] rounded' ref={el => cardRef.current[index] = el}>
+                                                <div className='border border-dashed aspect-[5/7] rounded'>
                                                     { card !== undefined ? getCard(card, index, player) : undefined }
                                                 </div>
                                             )) 

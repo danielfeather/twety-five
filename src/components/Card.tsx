@@ -1,4 +1,4 @@
-import { FC, HTMLProps } from 'react'
+import { FC, HTMLProps, forwardRef } from 'react'
 
 export enum Suit {
 	SPADES = 0,
@@ -30,7 +30,7 @@ interface CardProps {
 	flipped?: boolean
 }
 
-const Card: FC<CardProps & HTMLProps<HTMLDivElement>> = (props) => {
+const Card = forwardRef<HTMLDivElement, CardProps & HTMLProps<HTMLDivElement>>((props, ref) => {
 
 	const getImage = () => {
 		if (props.suit !== undefined && props.rank !== undefined) {
@@ -45,10 +45,10 @@ const Card: FC<CardProps & HTMLProps<HTMLDivElement>> = (props) => {
 	}
 
 	return (
-		<div onClick={props.onClick} className={"shadow-2xl overflow-hidden rounded relative " + props.className}>
+		<div onClick={props.onClick} className={"shadow-2xl overflow-hidden rounded relative transition-transform " + props.className} ref={ref}>
 			<img src={props.flipped ? getImage() : '/images/cards/back.png'} alt="Card" />
 		</div>
 	)
-}
+})
 
 export default Card
