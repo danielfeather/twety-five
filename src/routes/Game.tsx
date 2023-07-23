@@ -4,6 +4,7 @@ import Button, {Style} from '../components/Button'
 import Player from '../components/Player'
 import Table from "../components/Table";
 import Deck from "../components/Deck";
+import Lift from '../engine/Lift';
 
 interface Hands {
     [player: number]: number[]
@@ -36,212 +37,48 @@ function isAceOfTrumps(card: number, suit: Suit) {
     return getRank(suit, card) === Rank.ACE;
 }
 
-function getRankings(suit: Suit, trump = false) {
 
-    if (suit === Suit.CLUBS || suit === Suit.SPADES) {
-        return (!trump ? [
-            Rank.KING, Rank.QUEEN, Rank.JACK, Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN
-        ] : [
-            Rank.FIVE, Rank.JACK, [Suit.HEARTS, Rank.ACE], Rank.ACE, Rank.KING, Rank.QUEEN, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.SIX, Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN
-        ]).map(rankOrArray => {
-            if (Array.isArray(rankOrArray)) {
-                return rankOrArray.reduce((prev, current) => prev + current)
-            }
-
-            return rankOrArray + suit
-        })
-    }
-
-    if (suit === Suit.HEARTS) {
-        return (!trump ? [
-            Rank.KING, Rank.QUEEN, Rank.JACK, Rank.TEN, Rank.NINE, Rank.EIGHT, Rank.SEVEN, Rank.SIX, Rank.FIVE, Rank.FOUR, Rank.THREE, Rank.TWO
-        ] : [
-            Rank.FIVE, Rank.JACK, Rank.ACE, Rank.KING, Rank.QUEEN, Rank.TEN, Rank.NINE, Rank.EIGHT, Rank.SEVEN, Rank.SIX, Rank.FOUR, Rank.THREE, Rank.TWO
-        ]).map(rankOrArray => {
-            if (Array.isArray(rankOrArray)) {
-                return rankOrArray.reduce((prev, current) => prev + current)
-            }
-
-            return rankOrArray + suit
-        })
-    }
-
-    return (!trump ? [
-        Rank.KING, Rank.QUEEN, Rank.JACK, Rank.TEN, Rank.NINE, Rank.EIGHT, Rank.SEVEN, Rank.SIX, Rank.FIVE, Rank.FOUR, Rank.THREE, Rank.TWO, Rank.ACE
-    ] : [
-        Rank.FIVE, Rank.JACK, [Suit.HEARTS, Rank.ACE], Rank.ACE, Rank.KING, Rank.QUEEN, Rank.TEN, Rank.NINE, Rank.EIGHT, Rank.SEVEN, Rank.SIX, Rank.FOUR, Rank.THREE, Rank.TWO
-    ]).map(rankOrArray => {
-        if (Array.isArray(rankOrArray)) {
-            return rankOrArray.reduce((prev, current) => prev + current)
-        }
-
-        return rankOrArray + suit
-    })
-
-}
 
 const Game: FC = () => {
 
+    const players = [...Array(5).keys()]
+
+    const [hands, setHands] = useState([])
+
+    const [lift, setLift] = useState(new Lift(
+        players,
+        2
+    ))
+    
+    lift.onTake = (player, card) => {
+        setHands()
+    }
+
     const [trump, setTrump] = useState<Trump>()
-    const [deck, setDeck] = useState<number[]>([...Array(52).keys()].sort(() => Math.random() - .5))
-    const [players, setPlayers] = useState<number[]>([...Array(5).keys()])
     const [currentPlayer, setCurrentPlayer] = useState<number>(0)
     const [releasedCard, setReleasedCard] = useState<boolean>(false)
-    const [robbing, setRobbing] = useState<boolean>(false)
+    // const [robbing, setRobbing] = useState<boolean>(false)
     const [table, setTable] = useState<number[]>([])
-    const [suit, setSuit] = useState<Suit>()
 
-    
+    // function getCard(card: number, index: number, player: number) {
 
-    // Dealing
+    //     const suit = getSuit(card)
+    //     const rank = getRank(suit, card)
 
-    const [state, setState] = useState<string>()
-    const [dealer, setDealer] = useState<number>()
-    const [currentlyReceivingCards, setCurrentlyReceivingCards] = useState<number>()
+    //     function onCardClick() {
+    //         if (robbing) {
+    //             robTrump(card, player)
+    //             return
+    //         }
+    //         playCard(card, player)
+    //     }
 
-    const deckRef = useRef<HTMLDivElement>(null)
-    const cardRef = useRef<Array<HTMLDivElement|null>>([])
-
-    const winner = useMemo(() => {
-
-        if (!trump?.card) {
-            return []
-        }
-
-        return [...table].sort((a, b) => {
-                
-            const trumpSuit = getSuit(trump.card)
-
-            const aSuit = getSuit(a)
-            const aRank = getRank(aSuit, a)
-            const bSuit = getSuit(b)
-            const bRank = getRank(bSuit, b)
-            
-            console.log(`Comparing [${Rank[aRank]} of ${Suit[aSuit]}] to [${Rank[bRank]} of ${Suit[bSuit]}]`)
-
-            if (aSuit === trumpSuit || a === 13) {
-                if (bSuit === trumpSuit || b === 13) {
-                    
-                    const rankings = getRankings(trumpSuit, true)
-
-                    const aRanking = rankings.indexOf(a)
-                    const bRanking = rankings.indexOf(b)
-                    
-                    console.log(`[${Rank[bRank]} of ${Suit[bSuit]}] is ${bRanking < aRanking ? 'better than' : 'not better than'} [${Rank[aRank]} of ${Suit[aSuit]}]`)
-                    return bRanking < aRanking ? 1 : -1
-
-                }
-
-                return -1
-            }
-
-            if (bSuit === suit) {
-                
-                if (aSuit !== suit) {
-                    return 1
-                }
-                
-                const rankings = getRankings(suit)
-
-                const aRanking = rankings.indexOf(a)
-                const bRanking = rankings.indexOf(b)
-                
-                console.log(`[${Rank[bRank]} of ${Suit[bSuit]}] is ${bRanking < aRanking ? 'better than' : 'not better than'} [${Rank[aRank]} of ${Suit[aSuit]}]`)
-                return bRanking < aRanking ? 1 : -1
-
-            }
-
-            return 0
-
-        })
-    }, [table, trump, suit])
-
-    const [hands, setHands] = useState<Hands>({
-        0: Array(5).fill(undefined),
-        1: Array(5).fill(undefined),
-        2: Array(5).fill(undefined),
-        3: Array(5).fill(undefined),
-        4: Array(5).fill(undefined),
-    })
-
-    function getCard(card: number, index: number, player: number) {
-
-        const suit = getSuit(card)
-        const rank = getRank(suit, card)
-
-        function onCardClick() {
-            if (robbing) {
-                robTrump(card, player)
-                return
-            }
-            playCard(card, player)
-        }
-
-        return <Card suit={suit} rank={rank} key={index} flipped={currentPlayer === player} onClick={onCardClick} ref={el => cardRef.current[index] = el} />
-    }
+    //     return <Card suit={suit} rank={rank} key={index} flipped={currentPlayer === player} onClick={onCardClick} ref={el => cardRef.current[index] = el} />
+    // }
 
     function deal() {
-        setTable([])
-        setCurrentPlayer(0)
-        setReleasedCard(false)
-        setDealer(1)
-
-        const availableCards = deck
-
-        const trumpCard = availableCards.shift() as number
-
-        setDeck(availableCards)
-
-        setTrump({
-            robbed: false,
-            card: trumpCard,
-        })
-
-        setState('dealing')
+        lift.deal()
     }
-
-    useEffect(() => {
-        
-        if (state === 'dealing' && dealer !== undefined) {
-
-            // Previous cards transition
-            if (currentlyReceivingCards !== undefined) {
-                cardRef.current.forEach(card => {
-                    if (!card || !deckRef.current) {
-                        return
-                    }
-    
-                    const width = card.offsetWidth
-                    const originalLeft = card.offsetLeft
-                    const originalTop = card.offsetTop
-                    
-                    card.style.visibility = 'hidden'
-                    card.style.position = 'absolute'
-                    card.style.width = `${width}px`
-                    card.style.left = `${deckRef.current.offsetLeft}px`
-                    card.style.top = `${deckRef.current.offsetTop}px`
-                    card.style.transitionDuration = '.7s'
-                    card.style.visibility = 'visible'
-                    card.style.transform = `translate(
-                        ${originalLeft - deckRef.current.offsetLeft}px,
-                        ${originalTop - deckRef.current.offsetTop}px
-                    )`
-                })    
-            }
-
-            if (currentlyReceivingCards === undefined) {
-                const playersCards = deck.slice(0, 5)
-                setDeck(deck.filter(availableCard => !playersCards.includes(availableCard)))
-                setHands(prevState => ({
-                    ...prevState,
-                    [dealer + 1]: playersCards,
-                }))
-                setCurrentlyReceivingCards(dealer + 1)
-                return
-            }
-        }
-
-    }, [state, hands, currentlyReceivingCards, deck, dealer])
 
     function playCard(card: number, player: number) {
         if (currentPlayer === player) {
@@ -306,31 +143,23 @@ const Game: FC = () => {
         // If the A of trumps is turned up then the player may rob immediately and discard one of their cards
     }, [currentPlayer, trump])
 
-    useEffect(() => {
-        if (winner.length === players.length) {
-            setTimeout(() => alert(`Player ${(table.indexOf([...winner].shift() as number)) + 1} wins!`))
-        }
-    },[players, winner, table])
-
     return (
         <section className="p-4 h-full flex flex-wrap" style={{backgroundImage: "url('/images/wallpapers/vintage-wallpaper.webp')"}}>
             <Button variant={trump ? Style.DANGER : Style.DEFAULT} className="absolute" onClick={deal}>
                 {trump ? 'Restart game' : 'Start game'}
             </Button>
             <div className="mt-auto grid grid-cols-5 grid-flow-row w-full gap-y-4">
-                <Deck trump={trump} card={releasedCard} deckRef={deckRef} />
-                <div className="col-span-3 col-start-2 row-start-2 grid grid-flow-row gap-4 grid-cols-9">
-                    <Table cards={table} className="col-start-3 col-end-8" players={players} />
-                </div>
+                <Deck trump={trump} card={releasedCard} />
+                <Table cards={table} players={players} />
                 <div className="col-span-5 grid grid-flow-row grid-cols-5">
                     {
                         players.map(
                             player => {
                                 return (
-                                    <Player name={`Player ${player + 1}`}>
+                                    <Player name={`Player ${player + 1}`} key={player}>
                                         { 
                                             hands[player].map((card, index) => (
-                                                <div className='border border-dashed aspect-[5/7] rounded'>
+                                                <div className='border border-dashed aspect-[5/7] rounded' key={index}>
                                                     { card !== undefined ? getCard(card, index, player) : undefined }
                                                 </div>
                                             )) 
