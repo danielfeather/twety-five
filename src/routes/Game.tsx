@@ -10,56 +10,9 @@ const Game: FC = () => {
     const [players, setPlayers] = useState<number[][]>(Array(5).fill(Array(5).fill(undefined)))
     const [nextPlayer, setNextPlayer] = useState<number>(2)
     const [score, setScore] = useState<number[]>(Array(5).fill(0))
-    
-    // function robTrump(card: number, player: number) {
-    //     if (!trump) {
-    //         return
-    //     }
-    //     setReleasedCard(true)
-    //     setTrump({
-    //         ...trump,
-    //         robbed: true,
-    //     })
-    //     setHands(prevState => {
-
-    //         const hand = prevState[player]
-    //             .filter(playerCard => playerCard !== card)
-
-    //         hand.push(trump.card)
-
-    //         return {
-    //             ...prevState,
-    //             [player]: hand
-    //         }
-
-    //     })
-    //     setRobbing(false)
-    // }
-
-    // useEffect(() => {
-    //     if (!trump) {
-    //         return
-    //     }
-
-    //     if (currentPlayer !== 0) {
-    //         return;
-    //     }
-
-    //     if (!isAceOfTrumps(trump.card, getSuit(trump.card))) {
-    //         return;
-    //     }
-
-    //     if (trump.robbed) {
-    //         return;
-    //     }
-
-    //     setRobbing(true)
-    //     // If the A of trumps is turned up then the player may rob immediately and discard one of their cards
-    // }, [currentPlayer, trump])
 
     function onFinishHandler(winner: number) {
-        // setScore
-        console.log(winner)
+        setTimeout(() => alert(`The player who played ${winner + 1} position wins!`))
     }
 
     function onPlayHandler(type: ActionType, from: number, card: number) {

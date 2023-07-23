@@ -34,7 +34,6 @@ const Lift: FC<LiftProps> = ({ players, player, trump, onPlay, onFinish }) => {
         return [...table].sort((a, b) => {
                 
             const trumpSuit = getSuit(trump)
-            debugger
             const aSuit = getSuit(a)
             const aRank = getRank(aSuit, a)
             const bSuit = getSuit(b)
@@ -86,7 +85,7 @@ const Lift: FC<LiftProps> = ({ players, player, trump, onPlay, onFinish }) => {
         if (winner.length === players.length) {
             if (onFinish) {
                 const position = table.indexOf(winner.shift() as number)
-                onFinish(position + (table.length - 1) - startingPlayer)
+                onFinish(position)
             }
         }
     }, [winner, table, startingPlayer, onFinish, players])
