@@ -1,14 +1,5 @@
 import Game from "./Game";
 
-const ACTIONS = {
-    CARD: 'card',
-    ROB: 'rob', 
-} as const
-
-type ObjectValues<T> = T[keyof T]
-
-type ActionType = ObjectValues<typeof ACTIONS>
-
 class Lift {
 
     private deck: number[] = [...Array(52).keys()].sort(() => Math.random() - .5)
@@ -36,7 +27,7 @@ class Lift {
     }
 
     public onFinish: ((winner: number) => void) | undefined
-    public onPlay: ((player: number, type: ActionType) => void) | undefined
+    // public onPlay: ((player: number, type: ActionType) => void) | undefined
     public onReady: (() => void) | undefined
     public onTake: ((player: number, card: number) => void) | undefined
 
@@ -55,7 +46,7 @@ class Lift {
         this.players.forEach((player) => {        
             const cards = this.pick(3)
             if (this.onTake !== undefined) {
-                cards.forEach(card => this.onTake(player, card))
+                // cards.forEach(card => this.onTake(player, card))
             }
         })
         this.hands[this.player] = this.pick(2)

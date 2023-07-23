@@ -1,3 +1,5 @@
+import { getRank, getSuit } from "../util/cards"
+
 const Suits = {
     SPADES: 0,
     HEARTS: 13,
@@ -25,5 +27,16 @@ type ObjectValues<T> = T[keyof T]
 
 export type SuitType = ObjectValues<typeof Suits>
 export type RankType = ObjectValues<typeof Ranks>
+
+export function cardLabel(card: number) {
+
+	const suit = getSuit(card)
+	const rank = getRank(suit, card)
+
+	const suitLabel = Object.keys(Suits).find((key) => (Suits as any)[key] === suit)
+	const rankLabel = Object.keys(Ranks).find((key) => (Ranks as any)[key] === rank)
+
+	return `${rankLabel} of ${suitLabel}`
+}
 
 export { Suits, Ranks }

@@ -7,7 +7,7 @@ interface DeckProps {
         robbed: boolean
     }
     deckRef?: Ref<HTMLDivElement>
-    card: boolean
+    card: number | undefined
 }
 
 function getTrumpCard(card: number, robbed: boolean) {
