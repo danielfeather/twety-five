@@ -85,7 +85,16 @@ const Lift: FC<LiftProps> = ({ players, player, trump, onPlay, onFinish }) => {
         if (winner.length === players.length) {
             if (onFinish) {
                 const position = table.indexOf(winner.shift() as number)
-                onFinish(position)
+                const order: number[] = []
+                for(let i = startingPlayer; i < players.length + startingPlayer; i++) {
+                    if (i > players.length - 1) {
+                        order.push(i - players.length)
+                        continue
+                    }
+                    order.push(i)
+                }
+                // TODO: Ensure this only runs once. This is running twice?
+                onFinish(order[position])
             }
         }
     }, [winner, table, startingPlayer, onFinish, players])

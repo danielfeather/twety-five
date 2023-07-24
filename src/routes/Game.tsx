@@ -12,7 +12,11 @@ const Game: FC = () => {
     const [score, setScore] = useState<number[]>(Array(5).fill(0))
 
     function onFinishHandler(winner: number) {
-        setTimeout(() => alert(`The player who played ${winner + 1} position wins!`))
+        setScore(prev => {
+            prev[winner] = prev[winner] + 5
+            return prev
+        })
+        setTimeout(() => alert(`Player ${winner + 1} wins!`))
     }
 
     function onPlayHandler(type: ActionType, from: number, card: number) {
