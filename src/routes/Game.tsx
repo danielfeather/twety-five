@@ -9,14 +9,16 @@ const Game: FC = () => {
     const [discarded, setDiscarded] = useState<number>()
     const [players, setPlayers] = useState<number[][]>(Array(5).fill(Array(5).fill(undefined)))
     const [nextPlayer, setNextPlayer] = useState<number>(2)
-    const [score, setScore] = useState<number[]>(Array(5).fill(0))
+    const [score, setScore] = useState<{[id: number]: number}>([])
+    const [lift, setLift] = useState<number>(0)
 
     function onFinishHandler(winner: number) {
-        setScore(prev => {
-            prev[winner] = prev[winner] + 5
-            return prev
-        })
-        setTimeout(() => alert(`Player ${winner + 1} wins!`))
+        setScore(prev => ({
+            ...prev,
+            [winner]: prev[winner] ? prev[winner] + 5 : 5
+        }))
+        setLift(prev => prev + 1)
+        setNextPlayer(winner)
     }
 
     function onPlayHandler(type: ActionType, from: number, card: number) {
@@ -31,6 +33,7 @@ const Game: FC = () => {
 
             return ++previousPlayer
         })
+        console.log('on play')
     }
 
     useEffect(() => {
@@ -48,9 +51,14 @@ const Game: FC = () => {
 
     return (
         <section className="p-4 h-full flex flex-wrap" style={{backgroundImage: "url('/images/wallpapers/vintage-wallpaper.webp')"}}>
+            <ul>
+                {
+                    Object.keys(score).map(id => <li key={id}>{id}: {score[parseInt(id)]}</li>)
+                }
+            </ul>
             <div className="mt-auto grid grid-cols-5 grid-flow-row w-full gap-y-4">
                 <Deck card={discarded} trump={ trump ? { card: trump, robbed: false } : undefined}></Deck>
-                { trump ? <Lift players={players} player={nextPlayer} trump={trump} onPlay={onPlayHandler} onFinish={onFinishHandler} /> : undefined }
+                { trump ? <Lift key={`${lift}`} players={players} player={nextPlayer} trump={trump} onPlay={onPlayHandler} onFinish={onFinishHandler} /> : undefined }
             </div>
         </section>
     );

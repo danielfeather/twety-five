@@ -109,14 +109,10 @@ const Lift: FC<LiftProps> = ({ players, player, trump, onPlay, onFinish }) => {
         }
 
         function onCardClick() {
-            // if (robbing) {
-            //     robTrump(card, player)
-            //     return
-            // }
-            playCard(card, player)
+            playCard(card, to)
         }
 
-        return <Card suit={suit} rank={rank} key={index} flipped={player === to} onClick={onCardClick} />
+        return <Card suit={suit} rank={rank} key={`${to}-${index}`} flipped={to === player} onClick={onCardClick} />
     }
 
     function playCard(card: number, from: number) {
