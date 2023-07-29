@@ -9,14 +9,15 @@ const Game: FC = () => {
     const [discarded, setDiscarded] = useState<number>()
     const [players, setPlayers] = useState<number[][]>(Array(5).fill(Array(5).fill(undefined)))
     const [nextPlayer, setNextPlayer] = useState<number>(2)
-    const [score, setScore] = useState<{[id: number]: number}>([])
+    const [score, setScore] = useState<number[]>(Array(5).fill(0))
     const [lift, setLift] = useState<number>(0)
 
     function onFinishHandler(winner: number) {
-        setScore(prev => ({
-            ...prev,
-            [winner]: prev[winner] ? prev[winner] + 5 : 5
-        }))
+        setScore(prev => {
+            const newScore = [...prev]
+            newScore[winner] += 5
+            return newScore
+        })
         setLift(prev => prev + 1)
         setNextPlayer(winner)
     }
@@ -50,13 +51,13 @@ const Game: FC = () => {
     }, [players, trump])
 
     return (
-        <section className="p-4 h-full flex flex-wrap" style={{backgroundImage: "url('/images/wallpapers/vintage-wallpaper.webp')"}}>
-            <ul>
+        <section className="p-4 h-full flex flex-wrap items-center" style={{backgroundImage: "url('/images/wallpapers/vintage-wallpaper.webp')"}}>
+            <ul className='absolute top-0 left-0'>
                 {
-                    Object.keys(score).map(id => <li key={id}>{id}: {score[parseInt(id)]}</li>)
+                    score.map((score, index) => <li key={index}>{index}: {score}</li>)
                 }
             </ul>
-            <div className="mt-auto grid grid-cols-5 grid-flow-row w-full gap-y-4">
+            <div className="grid grid-cols-5 grid-flow-row w-full gap-y-4">
                 <Deck card={discarded} trump={ trump ? { card: trump, robbed: false } : undefined}></Deck>
                 { trump ? <Lift key={`${lift}`} players={players} player={nextPlayer} trump={trump} onPlay={onPlayHandler} onFinish={onFinishHandler} /> : undefined }
             </div>

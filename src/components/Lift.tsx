@@ -138,19 +138,13 @@ const Lift: FC<LiftProps> = ({ players, player, trump, onPlay, onFinish }) => {
             <Table cards={table} players={players}></Table>
             <div className="col-span-5 grid grid-flow-row grid-cols-5">
                 {
-                    players.map(
-                        (playerCards, playerNumber) => {
-                            return (
-                                <Player name={`Player ${playerNumber + 1}`} key={playerNumber}>
-                                    { playerCards.map((card, index) => (
-                                        <div className='border border-dashed aspect-[5/7] rounded' key={index}>
-                                            { card !== undefined ? getCard(card, index, playerNumber) : undefined }
-                                        </div>
-                                    )) }
-                                </Player>
-                            )
-                        }
-                    )
+                    <Player name={`Player ${player + 1}`} key={player}>
+                        { players[player].map((card, index) => (
+                            <div className='aspect-[5/7] last:mr-0 -mr-6 hover:mr-0  transition-all hover:-translate-y-2' key={index}>
+                                { card !== undefined ? getCard(card, index, player) : undefined }
+                            </div>
+                        )) }
+                    </Player>
                 }
             </div>
         </>
