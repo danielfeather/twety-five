@@ -27,7 +27,7 @@ function getTrumpCard(card: number, robbed: boolean) {
 
 const Deck: FC<DeckProps & HTMLProps<HTMLDivElement>> = ({ trump, card, deckRef, ...props }) => {
     return (
-        <div className={`grid grid-flow-row row-start-1 grid-cols-3 gap-4 col-start-3 ${props.className}`} {...props}>
+        <div className={`grid grid-flow-row grid-cols-3 gap-4 ${props.className}`} {...props}>
             <div ref={deckRef}>
                 <Card flipped={false} />
             </div>

@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from 'react'
+import { FC, ReactNode, useEffect, useMemo, useState } from 'react'
 import Deck from './Deck'
 import Table from './Table'
 import Player from './Player'
@@ -19,11 +19,12 @@ type LiftProps = {
     trump: number
     player: number
     players: number[][]
+    deck: ReactNode
     onPlay: ((type: ActionType, player: number, card: number) => void) | undefined
     onFinish: ((winner: number) => void) | undefined
 }
 
-const Lift: FC<LiftProps> = ({ players, player, trump, onPlay, onFinish }) => {
+const Lift: FC<LiftProps> = ({ players, player, trump, onPlay, onFinish, deck }) => {
     
     const [startingPlayer, setStartingPlayer] = useState<number>(player)
     const [table, setTable] = useState<number[]>([])
@@ -135,8 +136,7 @@ const Lift: FC<LiftProps> = ({ players, player, trump, onPlay, onFinish }) => {
     
     return (
         <>
-            <Table cards={table} players={players}></Table>
-            <div className="col-span-5 grid grid-flow-row grid-cols-5">
+            <Table cards={table} players={players} deck={deck}>
                 {
                     <Player name={`Player ${player + 1}`} key={player}>
                         { players[player].map((card, index) => (
@@ -146,7 +146,7 @@ const Lift: FC<LiftProps> = ({ players, player, trump, onPlay, onFinish }) => {
                         )) }
                     </Player>
                 }
-            </div>
+            </Table>
         </>
     )
 

@@ -51,16 +51,17 @@ const Game: FC = () => {
     }, [players, trump])
 
     return (
-        <section className="p-4 h-full flex flex-wrap items-center" style={{backgroundImage: "url('/images/wallpapers/vintage-wallpaper.webp')"}}>
+        <section className="p-4 h-full flex flex-wrap justify-center items-center" style={{backgroundImage: "url('/images/wallpapers/wood.png')"}}>
             <ul className='absolute top-0 left-0'>
                 {
                     score.map((score, index) => <li key={index}>{index}: {score}</li>)
                 }
             </ul>
-            <div className="grid grid-cols-5 grid-flow-row w-full gap-y-4">
+            
+            { trump ? <Lift key={`${lift}`} players={players} player={nextPlayer} trump={trump} onPlay={onPlayHandler} onFinish={onFinishHandler} deck={
                 <Deck card={discarded} trump={ trump ? { card: trump, robbed: false } : undefined}></Deck>
-                { trump ? <Lift key={`${lift}`} players={players} player={nextPlayer} trump={trump} onPlay={onPlayHandler} onFinish={onFinishHandler} /> : undefined }
-            </div>
+            } /> : undefined }
+            
         </section>
     );
 }
