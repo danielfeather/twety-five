@@ -1,0 +1,7 @@
+{
+  "name": "twety-five",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/twety-five/src",
+  "projectType": "application",
+  "tags": []
+}
