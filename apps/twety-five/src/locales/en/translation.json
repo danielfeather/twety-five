@@ -1,0 +1,11 @@
+{
+    "name": "Twety Five",
+    "home": {
+        "menu": {
+            "play": "Play",
+            "createLobby": "Create a Lobby",
+            "findLobby": "Find a Lobby",
+            "settings": "Settings"
+        }
+    }
+}
